@@ -48,6 +48,7 @@ int list_point;
 node_t *head;
 long last_id;
 
+
 void signalHandler(int signo);
 void client_handler_death(int signo);
 bool contains_char(char token[]);
@@ -387,6 +388,7 @@ int main(void)
                                     perror("write for exec");
                                     exit(0);
                                 }
+                                exit(0);
                             }
                         }
                         else {
@@ -432,6 +434,7 @@ int main(void)
                         }
                     }
                     else if(mode==2){    //task3: kill process
+                        
                         int pid;
                         if(!is_num(token)){
                             char *prompt= "0 Second argument must be a process id\n\n";
@@ -694,11 +697,20 @@ void* input_thread(void*ptr){
                     else{
                         //print to specific client
                         node_t *current=head;
-                        while(current->client_id!=id && current->client_id<last_id){
+                        while(current!=NULL && current->client_id!=id && current->client_id<last_id){
                             current= current->next;
                         }
                         
-                        if(current->client_id==id){
+                        if(current==NULL){
+                            char*prompt= "Client has disconnected\n\n";
+                            count_w= write(STDOUT_FILENO, prompt, strlen(prompt));
+                            if(count_w==-1){
+                                perror("client invalid");
+                                exit(1);
+                            }
+                            continue;
+                        }
+                        else if(current->client_id==id){
                             int spf= sprintf(optbuf,"%s\n\n",cmd_th);
                             count_w= write(current->pipefdContoClw, optbuf, spf);
                             if(count_w==-1){
@@ -778,11 +790,20 @@ void* input_thread(void*ptr){
                         }
                         node_t *current=head;
                         
-                        while(current->client_id!=id && current->client_id<last_id){
+                        while(current!=NULL && current->client_id!=id && current->client_id<last_id){
                             current= current->next;
                         }
-                        
-                        if(current->client_id==id){
+
+                        if(current==NULL){
+                            char*prompt= "Client has disconnected\n\n";
+                            count_w= write(STDOUT_FILENO, prompt, strlen(prompt));
+                            if(count_w==-1){
+                                perror("client invalid");
+                                exit(1);
+                            }
+                            continue;
+                        }
+                        else if(current->client_id==id){
                             count_w= write(current->pipefdContoClw, cmd_th, strlen(cmd_th));
                             if(count_w==-1){
                                 perror("input to CH");
